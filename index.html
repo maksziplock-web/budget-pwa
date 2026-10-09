@@ -467,7 +467,7 @@
       overflow-x: hidden;
       flex-shrink: 0;
       -webkit-overflow-scrolling: touch;
-      padding-bottom: calc(90px + max(env(safe-area-inset-bottom, 0px), 24px)) !important;
+      overscroll-behavior-y: contain;
     }
 
     /* True Multi-stage Progressive Glass Blur (0 sharp edges) */
@@ -594,7 +594,30 @@
       <div id="tabSliderTrack" class="h-full flex will-change-transform">
         
         <!-- Screen 1: Home (Главная) -->
-        <div class="tab-slide app-scroll px-4 pt-1 pb-4 space-y-3" id="slideHome">
+        <div class="tab-slide app-scroll px-4 pt-1 pb-4 space-y-3 relative" id="slideHome">
+          
+          <!-- Native iOS Pull-to-Refresh Floating Capsule Indicator -->
+          <div id="ptrContainer" class="w-full flex items-center justify-center overflow-hidden pointer-events-none select-none transition-[height,opacity] duration-200" style="height: 0px; opacity: 0;">
+            <div id="ptrPill" class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-900/95 border border-white/15 shadow-2xl backdrop-blur-xl">
+              <div class="w-4 h-4 flex items-center justify-center text-zinc-300 shrink-0">
+                <!-- Pull arrow -->
+                <svg id="ptrArrowIcon" class="w-3.5 h-3.5 text-zinc-300 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14M19 12l-7 7-7-7"/>
+                </svg>
+                <!-- Spinner -->
+                <svg id="ptrSpinIcon" class="w-3.5 h-3.5 text-white animate-spin hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path>
+                </svg>
+                <!-- Checkmark -->
+                <svg id="ptrCheckIcon" class="w-3.5 h-3.5 text-emerald-400 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+              <span id="ptrLabel" class="text-[11px] font-semibold text-zinc-300 tracking-tight">Потяните для обновления</span>
+            </div>
+          </div>
+
           <section id="viewHome" class="space-y-4">
         
                 <!-- Pure Apple Card Titanium (ISO 7810 proportions, grey/titanium chip, TITANIUM inscription) -->
@@ -2261,6 +2284,7 @@
         setupSwipeToClose('transferSheet', closeTransferSheet);
         setupSwipeToClose('bottomSheet', closeBottomSheet);
         setupInteractiveTabSlider();
+        setupPullToRefresh();
         setupKeyboardHandling();
         document.getElementById('sheetAmount')?.addEventListener('input', renderSplitBadge);
         document.getElementById('sheetCategory')?.addEventListener('change', (e) => {
@@ -2612,6 +2636,217 @@
 
       window.addEventListener('resize', () => {
         goToTab(currentTabIndex, false);
+      });
+    }
+
+    function setupPullToRefresh() {
+      const slideHome = document.getElementById('slideHome');
+      const ptrContainer = document.getElementById('ptrContainer');
+      const ptrArrowIcon = document.getElementById('ptrArrowIcon');
+      const ptrSpinIcon = document.getElementById('ptrSpinIcon');
+      const ptrCheckIcon = document.getElementById('ptrCheckIcon');
+      const ptrLabel = document.getElementById('ptrLabel');
+
+      if (!slideHome || !ptrContainer) return;
+
+      let startY = 0;
+      let startX = 0;
+      let isPulling = false;
+      let isRefreshing = false;
+      let canPull = false;
+      let isReady = false;
+
+      const PULL_THRESHOLD = 52;
+      const MAX_PULL = 72;
+
+      function isAnyModalOpen() {
+        const ids = ['bottomSheet', 'transferSheet', 'categorySheet', 'qrModal', 'customDateRangeModal', 'txDetailsModal', 'debtsModal', 'debtRepayModal', 'debtEditModal'];
+        return ids.some(id => {
+          const el = document.getElementById(id);
+          return el && !el.classList.contains('hidden');
+        });
+      }
+
+      function handleTouchStart(e) {
+        if (isRefreshing || isAnyModalOpen() || currentTabIndex !== 0) {
+          canPull = false;
+          return;
+        }
+        if (slideHome.scrollTop > 3) {
+          canPull = false;
+          return;
+        }
+
+        const touch = e.touches ? e.touches[0] : e;
+        startY = touch.clientY;
+        startX = touch.clientX;
+        canPull = true;
+        isPulling = false;
+        isReady = false;
+      }
+
+      function handleTouchMove(e) {
+        if (!canPull || isRefreshing || currentTabIndex !== 0 || isAnyModalOpen()) return;
+
+        if (slideHome.scrollTop > 3 && !isPulling) {
+          canPull = false;
+          return;
+        }
+
+        const touch = e.touches ? e.touches[0] : e;
+        const dy = touch.clientY - startY;
+        const dx = touch.clientX - startX;
+
+        if (!isPulling) {
+          if (dy > 8 && dy > Math.abs(dx) * 1.2 && slideHome.scrollTop <= 3) {
+            isPulling = true;
+            ptrContainer.style.transition = 'none';
+            ptrSpinIcon.classList.add('hidden');
+            ptrCheckIcon.classList.add('hidden');
+            ptrArrowIcon.classList.remove('hidden');
+          } else if (Math.abs(dx) > 10 || dy < -6) {
+            canPull = false;
+            return;
+          }
+        }
+
+        if (isPulling) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
+
+          if (dy <= 0) {
+            ptrContainer.style.height = '0px';
+            ptrContainer.style.opacity = '0';
+            return;
+          }
+
+          const pullDistance = Math.min(MAX_PULL, Math.pow(dy, 0.82) * 1.35);
+          ptrContainer.style.height = `${pullDistance}px`;
+          ptrContainer.style.opacity = `${Math.min(1, pullDistance / 30)}`;
+
+          if (pullDistance >= PULL_THRESHOLD) {
+            if (!isReady) {
+              isReady = true;
+              ptrArrowIcon.style.transform = 'rotate(180deg)';
+              ptrLabel.textContent = 'Отпустите для обновления';
+              if (navigator.vibrate) {
+                try { navigator.vibrate(20); } catch (err) {}
+              }
+            }
+          } else {
+            if (isReady) {
+              isReady = false;
+              ptrArrowIcon.style.transform = 'rotate(0deg)';
+              ptrLabel.textContent = 'Потяните для обновления';
+            }
+          }
+        }
+      }
+
+      async function handleTouchEnd() {
+        if (!isPulling) {
+          canPull = false;
+          return;
+        }
+
+        isPulling = false;
+        canPull = false;
+
+        if (isReady && !isRefreshing) {
+          await executeRefresh();
+        } else {
+          ptrContainer.style.transition = 'height 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease';
+          ptrContainer.style.height = '0px';
+          ptrContainer.style.opacity = '0';
+          ptrArrowIcon.style.transform = 'rotate(0deg)';
+          ptrLabel.textContent = 'Потяните для обновления';
+          isReady = false;
+        }
+      }
+
+      async function executeRefresh() {
+        isRefreshing = true;
+        ptrContainer.style.transition = 'height 0.25s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.2s ease';
+        ptrContainer.style.height = '46px';
+        ptrContainer.style.opacity = '1';
+
+        ptrArrowIcon.classList.add('hidden');
+        ptrArrowIcon.style.transform = 'rotate(0deg)';
+        ptrSpinIcon.classList.remove('hidden');
+        ptrLabel.textContent = 'Обновление...';
+
+        const startTime = Date.now();
+
+        try {
+          await loadData();
+
+          if ('serviceWorker' in navigator) {
+            try {
+              const reg = await navigator.serviceWorker.getRegistration();
+              if (reg) {
+                await reg.update();
+                console.log('[PWA] ServiceWorker update checked successfully');
+              }
+            } catch (swErr) {
+              console.warn('[PWA] SW update check failed:', swErr);
+            }
+          }
+        } catch (err) {
+          console.error('[PTR] Refresh error:', err);
+        }
+
+        const elapsed = Date.now() - startTime;
+        if (elapsed < 420) {
+          await new Promise(r => setTimeout(r, 420 - elapsed));
+        }
+
+        ptrSpinIcon.classList.add('hidden');
+        ptrCheckIcon.classList.remove('hidden');
+        ptrLabel.textContent = 'Обновлено';
+        if (navigator.vibrate) {
+          try { navigator.vibrate([15, 35, 15]); } catch (e) {}
+        }
+
+        await new Promise(r => setTimeout(r, 380));
+
+        ptrContainer.style.transition = 'height 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.24s ease';
+        ptrContainer.style.height = '0px';
+        ptrContainer.style.opacity = '0';
+
+        setTimeout(() => {
+          ptrCheckIcon.classList.add('hidden');
+          ptrArrowIcon.classList.remove('hidden');
+          ptrArrowIcon.style.transform = 'rotate(0deg)';
+          ptrLabel.textContent = 'Потяните для обновления';
+          isRefreshing = false;
+          isReady = false;
+        }, 280);
+      }
+
+      slideHome.addEventListener('touchstart', handleTouchStart, { passive: true });
+      slideHome.addEventListener('touchmove', handleTouchMove, { passive: false });
+      slideHome.addEventListener('touchend', handleTouchEnd, { passive: true });
+      slideHome.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+      let isMouseDown = false;
+      slideHome.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        const target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.closest('button') || target.closest('a'))) {
+          return;
+        }
+        isMouseDown = true;
+        handleTouchStart(e);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isMouseDown) return;
+        handleTouchMove(e);
+      });
+      window.addEventListener('mouseup', () => {
+        if (!isMouseDown) return;
+        isMouseDown = false;
+        handleTouchEnd();
       });
     }
 
