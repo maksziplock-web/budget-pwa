@@ -875,16 +875,19 @@
                 <div class="flex items-center justify-between pt-2.5">
                   <div>
                     <span class="text-xs font-medium text-zinc-200 block">Резервная копия базы (JSON)</span>
-                    <span class="text-[10px] text-zinc-500">Экспорт и импорт всех записей</span>
+                    <span class="text-[10px] text-zinc-500">Экспорт и синхронизация</span>
                   </div>
                   <div class="flex items-center gap-1.5">
-                    <button type="button" onclick="exportJSON()" class="px-2.5 py-1.5 rounded-xl bg-zinc-800/90 hover:bg-zinc-700/90 active:scale-95 border border-white/10 text-xs font-medium text-zinc-300 hover:text-white transition">
+                    <button type="button" onclick="exportJSON()" class="px-2 py-1.5 rounded-xl bg-zinc-800/90 hover:bg-zinc-700/90 active:scale-95 border border-white/10 text-xs font-medium text-zinc-300 hover:text-white transition">
                       Скачать
                     </button>
-                    <label class="px-2.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 border border-emerald-500/30 text-xs font-medium text-emerald-300 hover:text-white cursor-pointer transition">
+                    <label class="px-2 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 active:scale-95 border border-emerald-500/30 text-xs font-medium text-emerald-300 hover:text-white cursor-pointer transition">
                       Импорт
                       <input type="file" accept=".json,application/json" onchange="importJSON(event)" class="hidden">
                     </label>
+                    <button type="button" onclick="restoreFullBackup337()" class="px-2 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 active:scale-95 border border-purple-500/30 text-xs font-medium text-purple-300 hover:text-white transition">
+                      337 ₴
+                    </button>
                   </div>
                 </div>
               </div>
@@ -2182,6 +2185,22 @@
         alert('Ошибка при импорте: ' + (err.message || err));
       } finally {
         event.target.value = '';
+      }
+    }
+
+    async function restoreFullBackup337() {
+      const ok = confirm('Синхронизировать все сохраненные операции с балансом 337 ₴?');
+      if (!ok) return;
+      try {
+        const tr = db.transaction(['transactions'], 'readwrite');
+        tr.objectStore('transactions').clear();
+        await new Promise(r => { tr.oncomplete = r; });
+        await seedDefaultTransactions();
+        await loadData();
+        renderHome();
+        alert('Баланс 337 ₴ успешно синхронизирован!');
+      } catch (e) {
+        alert('Ошибка синхронизации: ' + e);
       }
     }
 
