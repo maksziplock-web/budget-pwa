@@ -44,17 +44,17 @@
       background: #000000 !important;
     }
     .tab-slide {
-      padding-top: 16px !important;
-      padding-bottom: 180px !important;
+      padding-top: 10px !important;
+      padding-bottom: 145px !important;
     }
     @media (max-width: 640px) {
       .tab-slide {
-        padding-top: calc(env(safe-area-inset-top, 54px) + 8px) !important;
-        padding-bottom: calc(180px + env(safe-area-inset-bottom, 24px)) !important;
+        padding-top: calc(env(safe-area-inset-top, 44px) - 2px) !important;
+        padding-bottom: calc(140px + env(safe-area-inset-bottom, 16px)) !important;
       }
     }
     nav {
-      bottom: calc(env(safe-area-inset-bottom, 20px) + 22px) !important;
+      bottom: 31px !important;
       padding-bottom: 0 !important;
       height: auto !important;
     }
@@ -594,10 +594,10 @@
       <div id="tabSliderTrack" class="h-full flex will-change-transform">
         
         <!-- Screen 1: Home (Главная) -->
-        <div class="tab-slide app-scroll px-4 pt-1 pb-4 space-y-3 relative" id="slideHome">
+        <div class="tab-slide app-scroll px-4 pt-0 pb-4 relative" id="slideHome">
           
           <!-- Native iOS Pull-to-Refresh Floating Capsule Indicator -->
-          <div id="ptrContainer" class="w-full flex items-center justify-center overflow-hidden pointer-events-none select-none transition-[height,opacity] duration-200" style="height: 0px; opacity: 0;">
+          <div id="ptrContainer" class="w-full flex items-center justify-center overflow-hidden pointer-events-none select-none transition-[height,opacity] duration-200" style="height: 0px; opacity: 0; margin: 0 !important;">
             <div id="ptrPill" class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-zinc-900/95 border border-white/15 shadow-2xl backdrop-blur-xl">
               <div class="w-4 h-4 flex items-center justify-center text-zinc-300 shrink-0">
                 <!-- Pull arrow -->
@@ -618,7 +618,7 @@
             </div>
           </div>
 
-          <section id="viewHome" class="space-y-4">
+          <section id="viewHome" class="space-y-4" style="margin-top: 0 !important;">
         
                 <!-- Pure Apple Card Titanium (ISO 7810 proportions, grey/titanium chip, TITANIUM inscription) -->
         <div class="relative w-full aspect-[1.586/1] rounded-[22px] p-5 sm:p-6 overflow-hidden border border-white/15 shadow-2xl flex flex-col justify-between" style="background: radial-gradient(130% 120% at 30% 20%, #26262b 0%, #161619 50%, #0a0a0c 100%); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), inset 0 -1px 1.5px rgba(0, 0, 0, 0.8), 0 20px 44px -10px rgba(0, 0, 0, 0.85);">
@@ -954,7 +954,7 @@
 
     <!-- 4. Ultra-refined Frosted Dark Glass Tab Bar (Footer) with Progressive Blur -->
     <!-- ================= BOTTOM FROSTED BLUR LIMITER BARRIER ================= -->
-    <div class="bottom-glass-barrier absolute bottom-0 left-0 right-0 h-[175px] pointer-events-none z-20 select-none overflow-hidden">
+    <div class="bottom-glass-barrier absolute bottom-0 left-0 right-0 h-[145px] pointer-events-none z-20 select-none overflow-hidden">
       <!-- Slice 1: High initial gentle blur starting ~70px above footer dock -->
       <div class="absolute inset-0" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, black 60%, black 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, black 60%, black 100%);"></div>
       
@@ -966,7 +966,7 @@
     </div>
 
     <!-- ================= UNDO TOAST NOTIFICATION (ABOVE FOOTER) ================= -->
-    <div id="undoToast" class="hidden absolute left-0 right-0 z-40 flex justify-center pointer-events-none px-4 select-none transition-all duration-300 transform translate-y-16 opacity-0" style="bottom: calc(env(safe-area-inset-bottom, 20px) + 94px) !important;">
+    <div id="undoToast" class="hidden absolute left-0 right-0 z-40 flex justify-center pointer-events-none px-4 select-none transition-all duration-300 transform translate-y-16 opacity-0" style="bottom: 101px !important;">
       <div class="pointer-events-none h-[52px] pl-4 pr-2 bg-[#1c1c1f]/95 backdrop-blur-2xl border border-white/10 rounded-full flex items-center justify-between gap-3 shadow-2xl shadow-black/90 max-w-[340px] w-full">
         <div class="flex items-center gap-2 min-w-0 pointer-events-none">
           <span class="text-xs text-zinc-300 font-medium truncate pointer-events-none">Транзакция удалена</span>
@@ -983,7 +983,7 @@
     </div>
 
     <!-- Floating Capsule Pill Dock (Equidistant Left, Right & Bottom) -->
-    <nav class="absolute left-0 right-0 z-30 flex justify-center pointer-events-none px-4 select-none" style="bottom: calc(env(safe-area-inset-bottom, 20px) + 22px) !important; padding-bottom: 0 !important;">
+    <nav class="absolute left-0 right-0 z-30 flex justify-center pointer-events-none px-4 select-none" style="bottom: 31px !important; padding-bottom: 0 !important;">
       <div class="pointer-events-auto h-[60px] px-5 bg-[#18181b]/90 backdrop-blur-2xl border border-white/10 rounded-full flex items-center justify-between gap-3 shadow-2xl shadow-black/80 max-w-[340px] w-full">
         <!-- Tab 1: Home -->
         <button onclick="switchTab('home')" id="tabHome" class="flex items-center justify-center w-11 h-11 tab-active group relative transition-all duration-150 active:scale-90 focus:outline-none cursor-pointer pointer-events-auto" style="touch-action: manipulation; pointer-events: auto !important;" aria-label="Главная">
