@@ -50,11 +50,11 @@
     @media (max-width: 640px) {
       .tab-slide {
         padding-top: calc(env(safe-area-inset-top, 54px) + 8px) !important;
-        padding-bottom: calc(140px + env(safe-area-inset-bottom, 20px)) !important;
+        padding-bottom: calc(180px + env(safe-area-inset-bottom, 24px)) !important;
       }
     }
     nav {
-      bottom: 26px !important;
+      bottom: calc(env(safe-area-inset-bottom, 20px) + 22px) !important;
       padding-bottom: 0 !important;
       height: auto !important;
     }
@@ -931,7 +931,7 @@
 
     <!-- 4. Ultra-refined Frosted Dark Glass Tab Bar (Footer) with Progressive Blur -->
     <!-- ================= BOTTOM FROSTED BLUR LIMITER BARRIER ================= -->
-    <div class="bottom-glass-barrier absolute bottom-0 left-0 right-0 h-[140px] pointer-events-none z-20 select-none overflow-hidden">
+    <div class="bottom-glass-barrier absolute bottom-0 left-0 right-0 h-[175px] pointer-events-none z-20 select-none overflow-hidden">
       <!-- Slice 1: High initial gentle blur starting ~70px above footer dock -->
       <div class="absolute inset-0" style="backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, black 60%, black 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.5) 25%, black 60%, black 100%);"></div>
       
@@ -943,7 +943,7 @@
     </div>
 
     <!-- ================= UNDO TOAST NOTIFICATION (ABOVE FOOTER) ================= -->
-    <div id="undoToast" class="hidden absolute left-0 right-0 z-40 flex justify-center pointer-events-none px-4 select-none transition-all duration-300 transform translate-y-16 opacity-0" style="bottom: 96px !important;">
+    <div id="undoToast" class="hidden absolute left-0 right-0 z-40 flex justify-center pointer-events-none px-4 select-none transition-all duration-300 transform translate-y-16 opacity-0" style="bottom: calc(env(safe-area-inset-bottom, 20px) + 94px) !important;">
       <div class="pointer-events-none h-[52px] pl-4 pr-2 bg-[#1c1c1f]/95 backdrop-blur-2xl border border-white/10 rounded-full flex items-center justify-between gap-3 shadow-2xl shadow-black/90 max-w-[340px] w-full">
         <div class="flex items-center gap-2 min-w-0 pointer-events-none">
           <span class="text-xs text-zinc-300 font-medium truncate pointer-events-none">Транзакция удалена</span>
@@ -960,7 +960,7 @@
     </div>
 
     <!-- Floating Capsule Pill Dock (Equidistant Left, Right & Bottom) -->
-    <nav class="absolute left-0 right-0 z-30 flex justify-center pointer-events-none px-4 select-none" style="bottom: 26px !important; padding-bottom: 0 !important;">
+    <nav class="absolute left-0 right-0 z-30 flex justify-center pointer-events-none px-4 select-none" style="bottom: calc(env(safe-area-inset-bottom, 20px) + 22px) !important; padding-bottom: 0 !important;">
       <div class="pointer-events-auto h-[60px] px-5 bg-[#18181b]/90 backdrop-blur-2xl border border-white/10 rounded-full flex items-center justify-between gap-3 shadow-2xl shadow-black/80 max-w-[340px] w-full">
         <!-- Tab 1: Home -->
         <button onclick="switchTab('home')" id="tabHome" class="flex items-center justify-center w-11 h-11 tab-active group relative transition-all duration-150 active:scale-90 focus:outline-none cursor-pointer pointer-events-auto" style="touch-action: manipulation; pointer-events: auto !important;" aria-label="Главная">
