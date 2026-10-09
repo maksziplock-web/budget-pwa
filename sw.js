@@ -1,4 +1,4 @@
-const CACHE_NAME = 'budget-pwa-v6';
+const CACHE_NAME = 'budget-pwa-v7';
 const ASSETS = [
   './',
   './index.html',
@@ -28,10 +28,29 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  const isHtml = event.request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
+
+  if (isHtml) {
+    // NETWORK-FIRST for HTML navigation: Always fetch fresh HTML from network if online
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match(event.request).then(cached => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for static assets (icons, JS, etc.)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) {
-        // Fetch in background to update cache (stale-while-revalidate)
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
