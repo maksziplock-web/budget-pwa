@@ -1754,6 +1754,8 @@
       { name: 'Аптеки', icon: '💊', color: '#DC2626', type: 'expense' },
       { name: 'Курение', icon: '🚬', color: '#7F1D1D', type: 'expense' },
       { name: 'Одежда', icon: '👕', color: '#9A3412', type: 'expense' },
+      { name: 'Кафешки', icon: '☕️', color: '#F59E0B', type: 'expense' },
+      { name: 'стрижка', icon: '✂️', color: '#8B5CF6', type: 'expense' },
       { name: 'Товары для дома', icon: '🧹', color: '#FB923C', type: 'expense' },
       { name: 'Подписки', icon: '📱', color: '#EAB308', type: 'expense' },
       { name: 'Такси', icon: '🚕', color: '#C2410C', type: 'expense' },
@@ -1787,13 +1789,33 @@
           txStore.createIndex('type', 'type', { unique: false });
           txStore.createIndex('category', 'category', { unique: false });
 
-          const now = new Date();
-          const curMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}`;
-          const pad = n => String(n).padStart(2, '0');
-          const demoDate = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-          
-          txStore.add({ date: demoDate, type: 'income', amount: 114, category: 'Доход', comment: 'Подработка на карту', period_month: curMonth, income_subtype: 'Подработка', account: 'card', created_at: now.toISOString() });
-          txStore.add({ date: demoDate, type: 'income', amount: 4, category: 'Доход', comment: 'Подработка наличными', period_month: curMonth, income_subtype: 'Подработка', account: 'cash', created_at: now.toISOString() });
+          const realInitTxs = [
+            { date: '2026-10-08 04:46', type: 'income', amount: 114, category: 'Подработка', comment: 'Подработка на карту', period_month: '2026-10', income_subtype: 'Подработка', account: 'card', created_at: '2026-10-08T01:46:00.000Z' },
+            { date: '2026-10-08 04:46', type: 'income', amount: 4, category: 'Подработка', comment: 'Подработка наличными', period_month: '2026-10', income_subtype: 'Подработка', account: 'cash', created_at: '2026-10-08T01:46:00.000Z' },
+            { date: '2026-10-08 04:46', type: 'expense', amount: 48, category: 'Алкоголь', comment: 'рево', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T01:46:00.000Z' },
+            { date: '2026-10-08 09:38', type: 'expense', amount: 42, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T06:38:00.000Z' },
+            { date: '2026-10-08 14:14', type: 'income', amount: 1000, category: 'Подработка', comment: 'за ноду бизайф', period_month: '2026-10', income_subtype: 'Подработка', account: 'card', created_at: '2026-10-08T11:14:00.000Z' },
+            { date: '2026-10-08 16:12', type: 'expense', amount: 109, category: 'Курение', comment: 'картридж', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:12:00.000Z' },
+            { date: '2026-10-08 16:12', type: 'expense', amount: 357, category: 'Курение', comment: 'жижа', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:12:00.000Z' },
+            { date: '2026-10-08 16:43', type: 'expense', amount: 130, category: 'Одежда', comment: 'краски', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:43:00.000Z' },
+            { date: '2026-10-09 00:11', type: 'expense', amount: 95, category: 'Кафешки', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T21:11:00.000Z' },
+            { date: '2026-10-09 22:46', type: 'expense', amount: 48, category: 'Алкоголь', comment: 'рево', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-09T19:46:00.000Z' },
+            { date: '2026-10-10 11:58', type: 'income', amount: 300, category: 'Помощь от родных', comment: 'мать', period_month: '2026-10', income_subtype: 'Помощь от родных', account: 'cash', created_at: '2026-10-10T08:58:00.000Z' },
+            { date: '2026-10-10 13:45', type: 'expense', amount: 200, category: 'стрижка', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-10T10:45:00.000Z' },
+            { date: '2026-10-10 13:46', type: 'income', amount: 16, category: 'Помощь от родных', comment: 'Помощь от родных', period_month: '2026-10', income_subtype: 'Помощь от родных', account: 'cash', created_at: '2026-10-10T10:46:00.000Z' },
+            { date: '2026-10-10 15:32', type: 'expense', amount: 40, category: 'Кафешки', comment: 'чай', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-10T12:32:00.000Z' },
+            { date: '2026-10-11 22:03', type: 'expense', amount: 40, category: 'Общественный транспорт', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:03:00.000Z' },
+            { date: '2026-10-11 22:03', type: 'expense', amount: 48, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:03:00.000Z' },
+            { date: '2026-10-11 22:03', type: 'expense', amount: 48, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:03:00.000Z' },
+            { date: '2026-10-11 22:04', type: 'expense', amount: 59, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:04:00.000Z' },
+            { date: '2026-10-11 22:07', type: 'transfer_out', amount: 77, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:07:00.000Z' },
+            { date: '2026-10-11 22:07', type: 'transfer_in', amount: 77, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:07:00.000Z' },
+            { date: '2026-10-11 22:07', type: 'transfer_out', amount: 20, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:07:00.000Z' },
+            { date: '2026-10-11 22:07', type: 'transfer_in', amount: 20, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:07:00.000Z' }
+          ];
+          for (const doc of realInitTxs) {
+            txStore.add(doc);
+          }
         };
 
         request.onsuccess = (event) => {
@@ -4606,105 +4628,28 @@
       const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
       const demo = [
-        {
-          date: '2026-10-08 04:46',
-          type: 'income',
-          amount: 114,
-          category: 'Доход',
-          comment: 'Подработка на карту',
-          period_month: '2026-10',
-          income_subtype: 'Подработка',
-          account: 'card',
-          created_at: '2026-10-08T01:46:43.603Z'
-        },
-        {
-          date: '2026-10-08 04:46',
-          type: 'income',
-          amount: 4,
-          category: 'Доход',
-          comment: 'Подработка наличными',
-          period_month: '2026-10',
-          income_subtype: 'Подработка',
-          account: 'cash',
-          created_at: '2026-10-08T01:46:43.603Z'
-        },
-        {
-          date: '2026-10-08 04:46',
-          type: 'expense',
-          amount: 48,
-          category: 'Алкоголь',
-          comment: 'рево',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T01:46:43.603Z'
-        },
-        {
-          date: '2026-10-08 09:38',
-          type: 'expense',
-          amount: 42,
-          category: 'Алкоголь',
-          comment: '',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T06:38:51.819Z'
-        },
-        {
-          date: '2026-10-08 14:14',
-          type: 'income',
-          amount: 1000,
-          category: 'Доход',
-          comment: 'за ноду бизайф',
-          period_month: '2026-10',
-          income_subtype: 'Подработка',
-          account: 'card',
-          created_at: '2026-10-08T11:15:09.536Z'
-        },
-        {
-          date: '2026-10-08 16:12',
-          type: 'expense',
-          amount: 109,
-          category: 'Курение',
-          comment: 'картридж',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T13:12:42.258Z'
-        },
-        {
-          date: '2026-10-08 16:12',
-          type: 'expense',
-          amount: 357,
-          category: 'Курение',
-          comment: 'жижа',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T13:12:56.717Z'
-        },
-        {
-          date: '2026-10-08 16:43',
-          type: 'expense',
-          amount: 130,
-          category: 'Одежда',
-          comment: 'краски',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T13:43:13.614Z'
-        },
-        {
-          date: '2026-10-09 00:11',
-          type: 'expense',
-          amount: 95,
-          category: 'Еда',
-          comment: '',
-          period_month: '2026-10',
-          income_subtype: null,
-          account: 'card',
-          created_at: '2026-10-08T21:12:05.966Z'
-        }
+        { date: '2026-10-08 04:46', type: 'income', amount: 114, category: 'Подработка', comment: 'Подработка на карту', period_month: '2026-10', income_subtype: 'Подработка', account: 'card', created_at: '2026-10-08T01:46:00.000Z' },
+        { date: '2026-10-08 04:46', type: 'income', amount: 4, category: 'Подработка', comment: 'Подработка наличными', period_month: '2026-10', income_subtype: 'Подработка', account: 'cash', created_at: '2026-10-08T01:46:00.000Z' },
+        { date: '2026-10-08 04:46', type: 'expense', amount: 48, category: 'Алкоголь', comment: 'рево', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T01:46:00.000Z' },
+        { date: '2026-10-08 09:38', type: 'expense', amount: 42, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T06:38:00.000Z' },
+        { date: '2026-10-08 14:14', type: 'income', amount: 1000, category: 'Подработка', comment: 'за ноду бизайф', period_month: '2026-10', income_subtype: 'Подработка', account: 'card', created_at: '2026-10-08T11:14:00.000Z' },
+        { date: '2026-10-08 16:12', type: 'expense', amount: 109, category: 'Курение', comment: 'картридж', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:12:00.000Z' },
+        { date: '2026-10-08 16:12', type: 'expense', amount: 357, category: 'Курение', comment: 'жижа', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:12:00.000Z' },
+        { date: '2026-10-08 16:43', type: 'expense', amount: 130, category: 'Одежда', comment: 'краски', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T13:43:00.000Z' },
+        { date: '2026-10-09 00:11', type: 'expense', amount: 95, category: 'Кафешки', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-08T21:11:00.000Z' },
+        { date: '2026-10-09 22:46', type: 'expense', amount: 48, category: 'Алкоголь', comment: 'рево', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-09T19:46:00.000Z' },
+        { date: '2026-10-10 11:58', type: 'income', amount: 300, category: 'Помощь от родных', comment: 'мать', period_month: '2026-10', income_subtype: 'Помощь от родных', account: 'cash', created_at: '2026-10-10T08:58:00.000Z' },
+        { date: '2026-10-10 13:45', type: 'expense', amount: 200, category: 'стрижка', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-10T10:45:00.000Z' },
+        { date: '2026-10-10 13:46', type: 'income', amount: 16, category: 'Помощь от родных', comment: 'Помощь от родных', period_month: '2026-10', income_subtype: 'Помощь от родных', account: 'cash', created_at: '2026-10-10T10:46:00.000Z' },
+        { date: '2026-10-10 15:32', type: 'expense', amount: 40, category: 'Кафешки', comment: 'чай', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-10T12:32:00.000Z' },
+        { date: '2026-10-11 22:03', type: 'expense', amount: 40, category: 'Общественный транспорт', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:03:00.000Z' },
+        { date: '2026-10-11 22:03', type: 'expense', amount: 48, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:03:00.000Z' },
+        { date: '2026-10-11 22:03', type: 'expense', amount: 48, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:03:00.000Z' },
+        { date: '2026-10-11 22:04', type: 'expense', amount: 59, category: 'Алкоголь', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:04:00.000Z' },
+        { date: '2026-10-11 22:07', type: 'transfer_out', amount: 77, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:07:00.000Z' },
+        { date: '2026-10-11 22:07', type: 'transfer_in', amount: 77, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:07:00.000Z' },
+        { date: '2026-10-11 22:07', type: 'transfer_out', amount: 20, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'card', created_at: '2026-10-11T19:07:00.000Z' },
+        { date: '2026-10-11 22:07', type: 'transfer_in', amount: 20, category: 'Перевод', comment: '', period_month: '2026-10', income_subtype: null, account: 'cash', created_at: '2026-10-11T19:07:00.000Z' }
       ];
 
       for (const item of demo) {
@@ -4762,6 +4707,8 @@
       'Аптеки': '#DC2626',
       'Курение': '#7F1D1D',
       'Одежда': '#9A3412',
+      'Кафешки': '#F59E0B',
+      'стрижка': '#8B5CF6',
       'Товары для дома': '#FB923C',
       'Подписки': '#EAB308',
       'Такси': '#C2410C',
