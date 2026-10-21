@@ -1701,6 +1701,35 @@
       </div>
     </div>
 
+    <!-- ================= COPY FALLBACK MODAL ================= -->
+    <div id="copyFallbackModal" class="fixed inset-0 z-[85] hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onclick="closeCopyFallbackModal()"></div>
+      <div class="relative w-full max-w-[390px] bg-[#161618] border border-white/15 rounded-t-[30px] sm:rounded-[28px] p-5 pb-8 sm:pb-5 shadow-[0_-16px_50px_rgba(0,0,0,0.95)] space-y-3.5 select-none z-10 flex flex-col max-h-[85vh]">
+        <div class="relative flex items-center justify-center pt-0.5 pb-1">
+          <div class="w-10 h-1 rounded-full bg-white/20"></div>
+          <button type="button" onclick="closeCopyFallbackModal()" class="absolute -top-1 -right-1 w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-zinc-400 hover:text-white transition" aria-label="Закрыть">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-base">📋</span>
+          <div>
+            <h4 class="text-xs font-bold text-white tracking-tight">Скопировать текст</h4>
+            <p class="text-[10px] text-zinc-400">Нажмите «Скопировать всё» или выделите вручную</p>
+          </div>
+        </div>
+        <textarea id="copyFallbackTextarea" readonly class="w-full h-44 p-3 text-[11px] font-mono bg-black/50 border border-white/10 rounded-2xl text-zinc-200 focus:outline-none focus:border-purple-500/50 resize-none select-all leading-relaxed"></textarea>
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" onclick="selectAndCopyFallback()" class="flex-1 py-3 rounded-full text-xs font-bold text-black bg-white hover:bg-zinc-200 active:scale-95 transition shadow-lg shadow-white/10">
+            Скопировать всё
+          </button>
+          <button type="button" onclick="closeCopyFallbackModal()" class="px-5 py-3 rounded-full text-xs font-semibold text-zinc-300 bg-white/10 hover:bg-white/15 active:scale-95 transition border border-white/10">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ================= APPLE-STYLE NUMPAD OVERLAY ================= -->
     <div id="numpadOverlay" class="hidden fixed bottom-0 left-0 right-0 z-[60] transform translate-y-full transition-transform duration-300 pointer-events-none select-none" style="transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);">
       <div class="mx-auto max-w-[430px] bg-[#161618] border-t border-white/10 rounded-t-[28px] px-3.5 pt-3 pb-11 min-h-[334px] shadow-[0_-12px_45px_rgba(0,0,0,0.95)] space-y-2.5 pointer-events-auto">
@@ -2155,10 +2184,14 @@
         if (err && err.name === 'AbortError') return; // user closed share sheet
       }
       try {
-        await navigator.clipboard.writeText(content);
-        alert(`${filename} скопирован в буфер обмена — вставь его в Telegram или Заметки.`);
+        const copied = await copyTextToClipboard(content);
+        if (copied) {
+          alert(`${filename} скопирован в буфер обмена — вставь его в Telegram или Заметки.`);
+        } else {
+          showCopyFallbackModal(content);
+        }
       } catch (err) {
-        alert('Не удалось экспортировать: ' + err);
+        showCopyFallbackModal(content);
       }
     }
 
@@ -5593,12 +5626,125 @@
       }
     }
 
+    async function copyTextToClipboard(textPromiseOrText) {
+      // Strategy 1: iOS Safari 13.4+ / WebKit Promise-based ClipboardItem
+      // Calling navigator.clipboard.write synchronously with a Promise preserves user gesture activation
+      if (typeof textPromiseOrText !== 'string' && typeof ClipboardItem !== 'undefined' && navigator.clipboard && navigator.clipboard.write) {
+        try {
+          const item = new ClipboardItem({
+            'text/plain': Promise.resolve(textPromiseOrText).then(t => new Blob([String(t)], { type: 'text/plain' }))
+          });
+          await navigator.clipboard.write([item]);
+          return true;
+        } catch (e) {
+          console.warn('ClipboardItem promise write failed, trying fallbacks:', e);
+        }
+      }
+
+      // Resolve text if it was a promise
+      let text = '';
+      try {
+        text = typeof textPromiseOrText === 'string' ? textPromiseOrText : await textPromiseOrText;
+      } catch (e) {
+        console.error('Failed to resolve text to copy:', e);
+        return false;
+      }
+
+      // Strategy 2: Capacitor Native Clipboard plugin if present
+      if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Clipboard) {
+        try {
+          await window.Capacitor.Plugins.Clipboard.write({ string: text });
+          return true;
+        } catch (e) {
+          console.warn('Capacitor clipboard write failed:', e);
+        }
+      }
+
+      // Strategy 3: Standard navigator.clipboard.writeText
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (e) {
+          console.warn('navigator.clipboard.writeText failed:', e);
+        }
+      }
+
+      // Strategy 4: Fallback hidden textarea with execCommand('copy') (iOS compatible)
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '0';
+        ta.style.left = '-9999px';
+        ta.style.width = '2em';
+        ta.style.height = '2em';
+        ta.style.padding = '0';
+        ta.style.border = 'none';
+        ta.style.outline = 'none';
+        ta.style.boxShadow = 'none';
+        ta.style.background = 'transparent';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        const successful = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (successful) return true;
+      } catch (err) {
+        console.warn('execCommand copy failed:', err);
+      }
+
+      return false;
+    }
+
+    function showCopyFallbackModal(text) {
+      const modal = document.getElementById('copyFallbackModal');
+      const ta = document.getElementById('copyFallbackTextarea');
+      if (modal && ta) {
+        ta.value = text;
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          ta.focus();
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+        }, 80);
+      } else {
+        prompt('Скопируйте текст отчета:', text);
+      }
+    }
+
+    function closeCopyFallbackModal() {
+      const modal = document.getElementById('copyFallbackModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function selectAndCopyFallback() {
+      const ta = document.getElementById('copyFallbackTextarea');
+      if (ta) {
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        let ok = false;
+        try {
+          ok = document.execCommand('copy');
+        } catch (e) {}
+        if (ok) {
+          haptic("success");
+          alert('Отчёт успешно скопирован в буфер обмена!');
+          closeCopyFallbackModal();
+        } else {
+          alert('Выделите текст в поле и выберите «Скопировать» во всплывающем меню iOS.');
+        }
+      }
+    }
+
     async function copyAiReport() {
       haptic("light");
       const btn = document.getElementById('copyAiBtn');
-      try {
-        const text = await generateAiReportText();
-        await navigator.clipboard.writeText(text);
+      
+      const setSuccessUI = () => {
         haptic("success");
         if (btn) {
           btn.innerHTML = '<span>✓ Скопировано</span>';
@@ -5608,8 +5754,24 @@
             btn.className = 'flex-1 py-3 px-3 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 active:scale-95 text-white flex items-center justify-center gap-1.5 transition border border-white/10';
           }, 2500);
         }
+      };
+
+      try {
+        const textPromise = generateAiReportText();
+        const ok = await copyTextToClipboard(textPromise);
+        if (ok) {
+          setSuccessUI();
+        } else {
+          const text = await textPromise;
+          showCopyFallbackModal(text);
+        }
       } catch (err) {
-        alert('Не удалось скопировать: ' + err);
+        try {
+          const text = await generateAiReportText();
+          showCopyFallbackModal(text);
+        } catch (e2) {
+          alert('Не удалось сформировать отчёт: ' + err);
+        }
       }
     }
 
