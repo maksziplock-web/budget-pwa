@@ -2330,15 +2330,16 @@
           await Promise.all(keys.map(k => caches.delete(k)));
         }
         if ('serviceWorker' in navigator) {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (const reg of regs) {
             await reg.unregister();
           }
         }
       } catch (e) {
         console.warn('Error clearing caches:', e);
       }
-      window.location.reload();
+      const cleanUrl = window.location.origin + window.location.pathname + '?v=' + Date.now();
+      window.location.replace(cleanUrl);
     }
 
     if ('serviceWorker' in navigator) {
