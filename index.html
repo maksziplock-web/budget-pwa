@@ -5720,16 +5720,24 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    function selectAndCopyFallback() {
+    async function selectAndCopyFallback() {
       const ta = document.getElementById('copyFallbackTextarea');
       if (ta) {
         ta.focus();
         ta.select();
         ta.setSelectionRange(0, ta.value.length);
         let ok = false;
-        try {
-          ok = document.execCommand('copy');
-        } catch (e) {}
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          try {
+            await navigator.clipboard.writeText(ta.value);
+            ok = true;
+          } catch (e) {}
+        }
+        if (!ok) {
+          try {
+            ok = document.execCommand('copy');
+          } catch (e) {}
+        }
         if (ok) {
           haptic("success");
           alert('Отчёт успешно скопирован в буфер обмена!');
